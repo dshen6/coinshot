@@ -14,7 +14,10 @@ public class PlayerController : MonoBehaviour {
     private LineRenderer aimArrow;
     public Rigidbody2D coin;
 
-    void Start () {
+    private Rigidbody2D leftCoin;
+    private Rigidbody2D rightCoin;
+
+    void Start() {
         playerInput = GetComponent<PlayerInput>();
         rg2d = GetComponent<Rigidbody2D>();
         aimArrow = GetComponentInChildren<LineRenderer>();
@@ -32,11 +35,10 @@ public class PlayerController : MonoBehaviour {
     void FixedUpdate() {
         checkGrounded();
         float verticalSpeed;
-        if (!isGrounded) { 
+        if (!isGrounded) {
             verticalSpeed = velocity.y - gravity;
             verticalSpeed = Mathf.Clamp(verticalSpeed, -maxVerticalSpeed, maxVerticalSpeed);
-        }
-        else {
+        } else {
             verticalSpeed = 0;
         }
         velocity = new Vector2(velocity.x, verticalSpeed);
@@ -57,9 +59,30 @@ public class PlayerController : MonoBehaviour {
         }
     }
 
-    void Fire1Down() {
-        Vector3 aimVector = playerInput.aimVector * 2;
-        Vector3 extrudedAimVector = aimVector + transform.position;
-        Rigidbody2D coinClone = (Rigidbody2D)Instantiate(coin, extrudedAimVector, transform.rotation);
+    void Fire1Down(float value) {
+        if (leftCoin == null) {
+            Vector3 aimVector = playerInput.aimVector * .4f;
+            Vector3 extrudedAimVector = aimVector + transform.position;
+            leftCoin = (Rigidbody2D)Instantiate(coin, extrudedAimVector, transform.rotation);
+        } else {
+
+        }
+    }
+
+    void Fire1Up() {
+        ////DestroyImmediate(leftCoin);
+        leftCoin = null;
+    }
+
+    void Fire2Down(float value) {
+        if (rightCoin == null) {
+            Vector3 aimVector = playerInput.aimVector * .4f;
+            Vector3 extrudedAimVector = aimVector + transform.position;
+            rightCoin = (Rigidbody2D)Instantiate(coin, extrudedAimVector, transform.rotation);
+        }
+    }
+
+    void Fire2Up() {
+        rightCoin = null;
     }
 }

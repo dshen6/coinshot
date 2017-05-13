@@ -10,9 +10,12 @@ public class PlayerInput : MonoBehaviour {
 
     float horizontal;
     float vertical;
+    private bool leftTriggerDown;
+    private bool rightTriggerDown;
 
     private string A_INPUT = "A_Keyboard_";
     private string B_INPUT = "B_Keyboard_";
+    private string TRIGGER_GAMEPAD = "Triggers_";
     private string A_GAMEPAD = "A_";
     private string B_GAMEPAD = "B_";
     private string X_GAMEPAD = "X_";
@@ -28,6 +31,7 @@ public class PlayerInput : MonoBehaviour {
         int playerId = controller.PLAYER_ID;
         A_INPUT += playerId;
         B_INPUT += playerId;
+        TRIGGER_GAMEPAD += playerId;
         HORIZONTAL_INPUT += playerId;
         VERTICAL_INPUT += playerId;
         A_GAMEPAD += playerId;
@@ -41,15 +45,29 @@ public class PlayerInput : MonoBehaviour {
     }
 
     void Update() {
-        horizontal = Input.GetAxisRaw(HORIZONTAL_INPUT) + Input.GetAxisRaw(HORIZONTAL_GAMEPAD);
-        vertical = Input.GetAxisRaw(VERTICAL_INPUT) + Input.GetAxisRaw(VERTICAL_GAMEPAD);
+        horizontal = Input.GetAxis(HORIZONTAL_INPUT) + Input.GetAxis(HORIZONTAL_GAMEPAD);
+        vertical = Input.GetAxis(VERTICAL_INPUT) + Input.GetAxis(VERTICAL_GAMEPAD);
         aimVector.x = horizontal;
         aimVector.y = vertical;
 
-        if (Input.GetButtonDown(A_INPUT) || Input.GetButtonDown(A_GAMEPAD)) {
-            if (controller != null) {
-                BroadcastMessage("Fire1Down");
-            }
+        //Input.GetButtonDown(A_INPUT)
+        float triggerInput = Input.GetAxis(TRIGGER_GAMEPAD);
+        if (triggerInput > -.01f) {
+            leftTriggerDown = true;
+            float value = Mathf.Abs(triggerInput);
+            BroadcastMessage("Fire1Down", value);
+        } else if (leftTriggerDown) {
+            leftTriggerDown = false;
+            BroadcastMessage("Fire1Up");
+        }
+
+        //Input.GetButtonDown(B_INPUT)
+        if (triggerInput > .01f) {
+            rightTriggerDown = true;
+            BroadcastMessage("Fire2Down", triggerInput);
+        } else if (rightTriggerDown) {
+            rightTriggerDown = false;
+            BroadcastMessage("Fire2Up");
         }
     }
 
