@@ -11,26 +11,26 @@ public class PlayerController : MonoBehaviour {
     private PlayerInput playerInput;
     private bool isGrounded;
     private Rigidbody2D rg2d;
+    private LineRenderer aimArrow;
+    public Rigidbody2D coin;
 
     void Start () {
         playerInput = GetComponent<PlayerInput>();
         rg2d = GetComponent<Rigidbody2D>();
+        aimArrow = GetComponentInChildren<LineRenderer>();
     }
 
-    void FixedUpdate() { 
-        RaycastHit2D[] hits = Physics2D.RaycastAll(rg2d.position, Vector2.down);
-        foreach (RaycastHit2D hit in hits) {
-            if (hit.collider.CompareTag("Player")) {
-                continue;
-            }
-            Debug.Log(hit.distance + " " + hit.rigidbody.tag);
-            if (hit.distance < .3f) {
-                Debug.Log("hit stage");
-                isGrounded = true;
-            }
-        }
-        
+    void Update() {
+        Vector3 aimVector = playerInput.aimVector * 2;
+        Vector3 extrudedAimVector = aimVector + transform.position;
+        Vector3[] positions = new Vector3[2];
+        positions[0] = transform.position;
+        positions[1] = extrudedAimVector;
+        aimArrow.SetPositions(positions);
+    }
 
+    void FixedUpdate() {
+        checkGrounded();
         float verticalSpeed;
         if (!isGrounded) { 
             verticalSpeed = velocity.y - gravity;
@@ -43,10 +43,23 @@ public class PlayerController : MonoBehaviour {
         rg2d.MovePosition(rg2d.position + velocity * Time.fixedDeltaTime);
     }
 
-    public void OnTriggerEnter2D(Collider2D collision) {
+    void checkGrounded() {
+        RaycastHit2D[] hits = Physics2D.RaycastAll(rg2d.position, Vector2.down);
+        foreach (RaycastHit2D hit in hits) {
+            if (hit.collider.CompareTag("Player")) {
+                continue;
+            }
+            //Debug.Log(hit.distance + " " + hit.rigidbody.tag);
+            if (hit.distance < .3f) {
+                //Debug.Log("hit stage");
+                isGrounded = true;
+            }
+        }
     }
 
     void Fire1Down() {
-
+        Vector3 aimVector = playerInput.aimVector * 2;
+        Vector3 extrudedAimVector = aimVector + transform.position;
+        Rigidbody2D coinClone = (Rigidbody2D)Instantiate(coin, extrudedAimVector, transform.rotation);
     }
 }
