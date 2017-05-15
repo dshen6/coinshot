@@ -12,10 +12,10 @@ public class PlayerController : MonoBehaviour {
     private bool isGrounded;
     private Rigidbody2D rg2d;
     private LineRenderer aimArrow;
-    public Rigidbody2D coin;
+    public CoinController coinPrefab;
 
-    private Rigidbody2D leftCoin;
-    private Rigidbody2D rightCoin;
+    private CoinController leftCoin;
+    private CoinController rightCoin;
 
     void Start() {
         playerInput = GetComponent<PlayerInput>();
@@ -48,7 +48,7 @@ public class PlayerController : MonoBehaviour {
     void checkGrounded() {
         RaycastHit2D[] hits = Physics2D.RaycastAll(rg2d.position, Vector2.down);
         foreach (RaycastHit2D hit in hits) {
-            if (hit.collider.CompareTag("Player")) {
+            if (!hit.collider.CompareTag("Stage")) {
                 continue;
             }
             //Debug.Log(hit.distance + " " + hit.rigidbody.tag);
@@ -60,29 +60,30 @@ public class PlayerController : MonoBehaviour {
     }
 
     void Fire1Down(float value) {
-        if (leftCoin == null) {
+        fireCoin(ref rightCoin, value);
+    }
+
+    void Fire2Down(float value) {
+        fireCoin(ref leftCoin, value);
+    }
+
+    void fireCoin(ref CoinController coin, float value) {
+        if (coin == null) {
             Vector3 aimVector = playerInput.aimVector * .4f;
             Vector3 extrudedAimVector = aimVector + transform.position;
-            leftCoin = (Rigidbody2D)Instantiate(coin, extrudedAimVector, transform.rotation);
+            coin = Instantiate(coinPrefab, extrudedAimVector, transform.rotation);
+            coin.setConnectedPlayer(this);
         } else {
-
+            coin.BroadcastMessage("OnPlayerForce", value);
         }
     }
 
     void Fire1Up() {
         ////DestroyImmediate(leftCoin);
-        leftCoin = null;
-    }
-
-    void Fire2Down(float value) {
-        if (rightCoin == null) {
-            Vector3 aimVector = playerInput.aimVector * .4f;
-            Vector3 extrudedAimVector = aimVector + transform.position;
-            rightCoin = (Rigidbody2D)Instantiate(coin, extrudedAimVector, transform.rotation);
-        }
+        rightCoin = null;
     }
 
     void Fire2Up() {
-        rightCoin = null;
+        leftCoin = null;
     }
 }

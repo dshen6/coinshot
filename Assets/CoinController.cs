@@ -11,7 +11,7 @@ public class CoinController : MonoBehaviour {
     private Rigidbody2D rg2d;
     private bool isGrounded;
 
-    public void OnPlayerForce() {
+    public void OnPlayerForce(float value) {
         Vector2 fromPlayer = rg2d.position - connectedPlayer.GetComponent<Rigidbody2D>().position;
         velocity = Vector2.ClampMagnitude(velocity + fromPlayer, 10f);
     }

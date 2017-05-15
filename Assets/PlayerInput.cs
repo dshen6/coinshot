@@ -15,7 +15,9 @@ public class PlayerInput : MonoBehaviour {
 
     private string A_INPUT = "A_Keyboard_";
     private string B_INPUT = "B_Keyboard_";
-    private string TRIGGER_GAMEPAD = "Triggers_";
+    private string LEFT_TRIGGER_GAMEPAD = "Left_Trigger_";
+    private string RIGHT_TRIGGER_GAMEPAD = "Right_Trigger_";
+
     private string A_GAMEPAD = "A_";
     private string B_GAMEPAD = "B_";
     private string X_GAMEPAD = "X_";
@@ -31,7 +33,8 @@ public class PlayerInput : MonoBehaviour {
         int playerId = controller.PLAYER_ID;
         A_INPUT += playerId;
         B_INPUT += playerId;
-        TRIGGER_GAMEPAD += playerId;
+        LEFT_TRIGGER_GAMEPAD += playerId;
+        RIGHT_TRIGGER_GAMEPAD += playerId;
         HORIZONTAL_INPUT += playerId;
         VERTICAL_INPUT += playerId;
         A_GAMEPAD += playerId;
@@ -51,22 +54,22 @@ public class PlayerInput : MonoBehaviour {
         aimVector.y = vertical;
 
         //Input.GetButtonDown(A_INPUT)
-        float triggerInput = Input.GetAxis(TRIGGER_GAMEPAD);
-        if (triggerInput > -.01f) {
-            leftTriggerDown = true;
-            float value = Mathf.Abs(triggerInput);
-            BroadcastMessage("Fire1Down", value);
-        } else if (leftTriggerDown) {
-            leftTriggerDown = false;
+        float triggerInput = Input.GetAxis(RIGHT_TRIGGER_GAMEPAD);
+        if (triggerInput > .01f) {
+            rightTriggerDown = true;
+            BroadcastMessage("Fire1Down", triggerInput);
+        } else if (rightTriggerDown) {
+            rightTriggerDown = false;
             BroadcastMessage("Fire1Up");
         }
 
         //Input.GetButtonDown(B_INPUT)
+        triggerInput = Input.GetAxis(LEFT_TRIGGER_GAMEPAD);
         if (triggerInput > .01f) {
-            rightTriggerDown = true;
+            leftTriggerDown = true;
             BroadcastMessage("Fire2Down", triggerInput);
-        } else if (rightTriggerDown) {
-            rightTriggerDown = false;
+        } else if (leftTriggerDown) {
+            leftTriggerDown = false;
             BroadcastMessage("Fire2Up");
         }
     }
