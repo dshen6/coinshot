@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,13 +7,22 @@ public class PlayerController : MonoBehaviour {
 
     public int PLAYER_ID;
     public Vector2 velocity;
-    public float gravity = 9.8f;
+    public float gravity = 1f;
+    public float distanceToHit = .3f;
     public float maxVerticalSpeed;
+    public float maxHorizontalSpeed;
+    public CoinController coinPrefab;
+
     private PlayerInput playerInput;
     private bool isGrounded;
+    private bool isRightBounded;
+    private bool isLeftBounded;
+    private bool shouldIgnoreGrounded;
+    private bool shouldIgnoreRightBounded;
+    private bool shouldIgnoreLeftBounded;
+
     private Rigidbody2D rg2d;
     private LineRenderer aimArrow;
-    public CoinController coinPrefab;
 
     private CoinController leftCoin;
     private CoinController rightCoin;
@@ -24,6 +34,10 @@ public class PlayerController : MonoBehaviour {
     }
 
     void Update() {
+        HandleInput();
+    }
+
+    void HandleInput() {
         Vector3 aimVector = playerInput.aimVector * 2;
         Vector3 extrudedAimVector = aimVector + transform.position;
         Vector3[] positions = new Vector3[2];
@@ -32,31 +46,44 @@ public class PlayerController : MonoBehaviour {
         aimArrow.SetPositions(positions);
     }
 
-    void FixedUpdate() {
-        checkGrounded();
-        float verticalSpeed;
-        if (!isGrounded) {
-            verticalSpeed = velocity.y - gravity;
-            verticalSpeed = Mathf.Clamp(verticalSpeed, -maxVerticalSpeed, maxVerticalSpeed);
-        } else {
-            verticalSpeed = 0;
+    public void reboundForce(float value, Vector2 direction) {
+        velocity += direction.normalized;
+        if (direction.y > 0) {
+            shouldIgnoreGrounded = true;
         }
-        velocity = new Vector2(velocity.x, verticalSpeed);
-        rg2d.MovePosition(rg2d.position + velocity * Time.fixedDeltaTime);
+        if (direction.x > 0) {
+            shouldIgnoreLeftBounded = true;
+        }
+        if (direction.x < 0) {
+            shouldIgnoreRightBounded = true;
+        }
     }
 
-    void checkGrounded() {
-        RaycastHit2D[] hits = Physics2D.RaycastAll(rg2d.position, Vector2.down);
-        foreach (RaycastHit2D hit in hits) {
-            if (!hit.collider.CompareTag("Stage")) {
-                continue;
-            }
-            //Debug.Log(hit.distance + " " + hit.rigidbody.tag);
-            if (hit.distance < .3f) {
-                //Debug.Log("hit stage");
-                isGrounded = true;
-            }
+    void FixedUpdate() {
+        float verticalSpeed;
+
+        isGrounded = Utils.checkBoundedInDirection(Vector2.down, distanceToHit, rg2d.position) && !shouldIgnoreGrounded;
+        if (isGrounded) {
+            verticalSpeed = 0;
+        } else {
+            verticalSpeed = velocity.y - (shouldIgnoreGrounded ? 0 : gravity);
+            verticalSpeed = Mathf.Clamp(verticalSpeed, -maxVerticalSpeed, maxVerticalSpeed);
+            shouldIgnoreGrounded = false;
         }
+
+        isLeftBounded = Utils.checkBoundedInDirection(Vector2.left, distanceToHit, rg2d.position) && !shouldIgnoreLeftBounded;
+        isRightBounded = Utils.checkBoundedInDirection(Vector2.right, distanceToHit, rg2d.position) && !shouldIgnoreRightBounded;
+        float horizontalSpeed;
+        if (isLeftBounded || isRightBounded) {
+            horizontalSpeed = 0;
+        } else {
+            horizontalSpeed = Mathf.Clamp(velocity.x, -maxHorizontalSpeed, maxHorizontalSpeed);
+            shouldIgnoreLeftBounded = false;
+            shouldIgnoreRightBounded = false;
+        }
+
+        velocity = new Vector2(horizontalSpeed, verticalSpeed);
+        rg2d.MovePosition(rg2d.position + velocity * Time.fixedDeltaTime);
     }
 
     void Fire1Down(float value) {
@@ -74,7 +101,7 @@ public class PlayerController : MonoBehaviour {
             coin = Instantiate(coinPrefab, extrudedAimVector, transform.rotation);
             coin.setConnectedPlayer(this);
         } else {
-            coin.BroadcastMessage("OnPlayerForce", value);
+            coin.OnPlayerForce(value);
         }
     }
 
