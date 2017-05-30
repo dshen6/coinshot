@@ -11,13 +11,14 @@ public class PlayerController : MonoBehaviour {
     public float distanceToHit = .3f;
     public float maxVerticalSpeed;
     public float maxHorizontalSpeed;
+    public float maxTerminalVelocity;
     public CoinController coinPrefab;
 
     private PlayerInput playerInput;
     private bool isGrounded;
     private bool isRightBounded;
     private bool isLeftBounded;
-    private bool shouldIgnoreGrounded;
+    private bool? isExperiencingForceUp = null;
     private bool shouldIgnoreRightBounded;
     private bool shouldIgnoreLeftBounded;
 
@@ -48,9 +49,7 @@ public class PlayerController : MonoBehaviour {
 
     public void reboundForce(float value, Vector2 direction) {
         velocity += direction.normalized;
-        if (direction.y > 0) {
-            shouldIgnoreGrounded = true;
-        }
+        isExperiencingForceUp = direction.y > 0;
         if (direction.x > 0) {
             shouldIgnoreLeftBounded = true;
         }
@@ -62,13 +61,16 @@ public class PlayerController : MonoBehaviour {
     void FixedUpdate() {
         float verticalSpeed;
 
-        isGrounded = Utils.checkBoundedInDirection(Vector2.down, distanceToHit, rg2d.position) && !shouldIgnoreGrounded;
+        isGrounded = Utils.checkBoundedInDirection(Vector2.down, distanceToHit, rg2d.position) && !isExperiencingForceUp.GetValueOrDefault(false);
         if (isGrounded) {
             verticalSpeed = 0;
         } else {
-            verticalSpeed = velocity.y - (shouldIgnoreGrounded ? 0 : gravity);
+            verticalSpeed = velocity.y - (isExperiencingForceUp.GetValueOrDefault(false) ? 0 : gravity);
+            if (isExperiencingForceUp == null) {
+                verticalSpeed = Mathf.Max(verticalSpeed, -maxTerminalVelocity);
+            }
             verticalSpeed = Mathf.Clamp(verticalSpeed, -maxVerticalSpeed, maxVerticalSpeed);
-            shouldIgnoreGrounded = false;
+            isExperiencingForceUp = null;
         }
 
         isLeftBounded = Utils.checkBoundedInDirection(Vector2.left, distanceToHit, rg2d.position) && !shouldIgnoreLeftBounded;
@@ -83,6 +85,7 @@ public class PlayerController : MonoBehaviour {
         }
 
         velocity = new Vector2(horizontalSpeed, verticalSpeed);
+        velocity *= .92f;
         rg2d.MovePosition(rg2d.position + velocity * Time.fixedDeltaTime);
     }
 
