@@ -24,6 +24,8 @@ public class PlayerController : MonoBehaviour {
 
     private Rigidbody2D rg2d;
     private LineRenderer aimArrow;
+    private LineRenderer leftTetherLine;
+    private LineRenderer rightTetherLine;
 
     private CoinController leftCoin;
     private CoinController rightCoin;
@@ -31,20 +33,44 @@ public class PlayerController : MonoBehaviour {
     void Start() {
         playerInput = GetComponent<PlayerInput>();
         rg2d = GetComponent<Rigidbody2D>();
-        aimArrow = GetComponentInChildren<LineRenderer>();
+        aimArrow = GetComponentsInChildren<LineRenderer>()[0];
+
+        leftTetherLine = GetComponentsInChildren<LineRenderer>()[1];
+        rightTetherLine = GetComponentsInChildren<LineRenderer>()[2];
     }
 
     void Update() {
         HandleInput();
+        RenderTetherLines();
     }
 
     void HandleInput() {
         Vector3 aimVector = playerInput.aimVector * 2;
-        Vector3 extrudedAimVector = aimVector + transform.position;
+        Vector3 extrudedAimVector = aimVector * .4f + transform.position;
         Vector3[] positions = new Vector3[2];
         positions[0] = transform.position;
         positions[1] = extrudedAimVector;
         aimArrow.SetPositions(positions);
+    }
+
+    void RenderTetherLines() {
+        
+        Vector3[] positions = new Vector3[2];
+        positions[0] = transform.position;
+        if (leftCoin == null) {
+            positions[1] = transform.position;
+        } else {
+            positions[1] = leftCoin.transform.position;
+        }
+        leftTetherLine.SetPositions(positions);
+
+        positions[0] = transform.position;
+        if (rightCoin == null) {
+            positions[1] = transform.position;
+        } else {
+            positions[1] = rightCoin.transform.position;
+        }
+        rightTetherLine.SetPositions(positions);
     }
 
     public void reboundForce(float value, Vector2 direction) {
@@ -99,12 +125,12 @@ public class PlayerController : MonoBehaviour {
 
     void fireCoin(ref CoinController coin, float value) {
         if (coin == null) {
-            Vector3 aimVector = playerInput.aimVector * .4f;
+            Vector3 aimVector = playerInput.aimVector;
             Vector3 extrudedAimVector = aimVector + transform.position;
             coin = Instantiate(coinPrefab, extrudedAimVector, transform.rotation);
             coin.setConnectedPlayer(this);
         } else {
-            coin.OnPlayerForce(value);
+            coin.OnPlayerForce(value * 6);
         }
     }
 
