@@ -23,7 +23,6 @@ public class PlayerController : MonoBehaviour {
     private bool shouldIgnoreLeftBounded;
 
     private Rigidbody2D rg2d;
-    private LineRenderer aimArrow;
     private LineRenderer leftTetherLine;
     private LineRenderer rightTetherLine;
 
@@ -33,28 +32,16 @@ public class PlayerController : MonoBehaviour {
     void Start() {
         playerInput = GetComponent<PlayerInput>();
         rg2d = GetComponent<Rigidbody2D>();
-        aimArrow = GetComponentsInChildren<LineRenderer>()[0];
 
-        leftTetherLine = GetComponentsInChildren<LineRenderer>()[1];
-        rightTetherLine = GetComponentsInChildren<LineRenderer>()[2];
+        leftTetherLine = GetComponentsInChildren<LineRenderer>()[0];
+        rightTetherLine = GetComponentsInChildren<LineRenderer>()[1];
     }
 
     void Update() {
-        HandleInput();
         RenderTetherLines();
     }
 
-    void HandleInput() {
-        Vector3 aimVector = playerInput.aimVector * 2;
-        Vector3 extrudedAimVector = aimVector * .4f + transform.position;
-        Vector3[] positions = new Vector3[2];
-        positions[0] = transform.position;
-        positions[1] = extrudedAimVector;
-        aimArrow.SetPositions(positions);
-    }
-
     void RenderTetherLines() {
-        
         Vector3[] positions = new Vector3[2];
         positions[0] = transform.position;
         if (leftCoin == null) {
@@ -116,17 +103,17 @@ public class PlayerController : MonoBehaviour {
     }
 
     void Fire1Down(float value) {
-        fireCoin(ref rightCoin, value);
+        fireCoin(ref rightCoin, ref playerInput.rightAimVector, value);
     }
 
     void Fire2Down(float value) {
-        fireCoin(ref leftCoin, value);
+        fireCoin(ref leftCoin, ref playerInput.leftAimVector, value);
     }
 
-    void fireCoin(ref CoinController coin, float value) {
+    void fireCoin(ref CoinController coin, ref Vector2 aimVector, float value) {
         if (coin == null) {
-            Vector3 aimVector = playerInput.aimVector;
-            Vector3 extrudedAimVector = aimVector + transform.position;
+            Vector3 aimVector3 = aimVector;
+            Vector3 extrudedAimVector = aimVector3 + transform.position;
             coin = Instantiate(coinPrefab, extrudedAimVector, transform.rotation);
             coin.setConnectedPlayer(this);
         } else {
@@ -142,4 +129,13 @@ public class PlayerController : MonoBehaviour {
     void Fire2Up() {
         leftCoin = null;
     }
+
+    //void HandleInput() {
+    //    Vector3 aimVector = playerInput.leftAimVector * 2;
+    //    Vector3 extrudedAimVector = aimVector * .4f + transform.position;
+    //    Vector3[] positions = new Vector3[2];
+    //    positions[0] = transform.position;
+    //    positions[1] = extrudedAimVector;
+    //    aimArrow.SetPositions(positions);
+    //}
 }
