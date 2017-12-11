@@ -12,13 +12,14 @@ public class PlayerController : MonoBehaviour {
     public float MAX_VERTICAL_SPEED = 9f;
     public float MAX_HORIZONTAL_SPEED = 8f;
     public float MAX_TERMINAL_VELOCITY = 7f;
+    public float LETHAL_SQR_MAGNITUDE = 105f;
     public CoinController coinPrefab;
 
     private PlayerInput playerInput;
     private bool isGrounded;
     private bool isRightBounded;
     private bool isLeftBounded;
-    private bool? isExperiencingForceUp = null;
+    private bool? isExperiencingUpwardForce = null;
     private bool shouldIgnoreRightBounded;
     private bool shouldIgnoreLeftBounded;
 
@@ -62,7 +63,7 @@ public class PlayerController : MonoBehaviour {
 
     public void reboundForce(float value, Vector2 direction) {
         velocity += direction.normalized * value * value;
-        isExperiencingForceUp = direction.y > 0;
+        isExperiencingUpwardForce = direction.y > 0;
         if (direction.x > 0) {
             shouldIgnoreLeftBounded = true;
         }
@@ -74,16 +75,16 @@ public class PlayerController : MonoBehaviour {
     void FixedUpdate() {
         float verticalSpeed;
 
-        isGrounded = Utils.checkBoundedInDirection(Vector2.down, DISTANCE_TO_HIT, rg2d.position) && !isExperiencingForceUp.GetValueOrDefault(false);
+        isGrounded = Utils.checkBoundedInDirection(Vector2.down, DISTANCE_TO_HIT, rg2d.position) && !isExperiencingUpwardForce.GetValueOrDefault(false);
         if (isGrounded) {
             verticalSpeed = 0;
         } else {
-            verticalSpeed = velocity.y - (isExperiencingForceUp.GetValueOrDefault(false) ? 0 : GRAVITY);
-            if (isExperiencingForceUp == null) {
+            verticalSpeed = velocity.y - (isExperiencingUpwardForce.GetValueOrDefault(false) ? 0 : GRAVITY);
+            if (isExperiencingUpwardForce == null) {
                 verticalSpeed = Mathf.Max(verticalSpeed, -MAX_TERMINAL_VELOCITY);
             }
             verticalSpeed = Mathf.Clamp(verticalSpeed, -MAX_VERTICAL_SPEED, MAX_VERTICAL_SPEED);
-            isExperiencingForceUp = null;
+            isExperiencingUpwardForce = null;
         }
 
         isLeftBounded = Utils.checkBoundedInDirection(Vector2.left, DISTANCE_TO_HIT, rg2d.position) && !shouldIgnoreLeftBounded;
@@ -123,7 +124,7 @@ public class PlayerController : MonoBehaviour {
             Vector3 aimVector3 = aimVector;
             Vector3 extrudedAimVector = aimVector3 + transform.position;
             coin = Instantiate(coinPrefab, extrudedAimVector, transform.rotation);
-            coin.setConnectedPlayer(this);
+            coin.connectedPlayer = this;
         }
     }
 
@@ -139,12 +140,21 @@ public class PlayerController : MonoBehaviour {
         leftCoin = null;
     }
 
-    //void HandleInput() {
-    //    Vector3 aimVector = playerInput.leftAimVector * 2;
-    //    Vector3 extrudedAimVector = aimVector * .4f + transform.position;
-    //    Vector3[] positions = new Vector3[2];
-    //    positions[0] = transform.position;
-    //    positions[1] = extrudedAimVector;
-    //    aimArrow.SetPositions(positions);
-    //}
+    private void OnTriggerEnter2D(Collider2D collision) {
+        CoinController coin = collision.GetComponent<CoinController>();
+        if (coin == null) {
+            return;
+        }
+        Vector2 impactVelocity = coin.velocity - velocity;
+        Debug.Log(impactVelocity.sqrMagnitude);
+        if (impactVelocity.sqrMagnitude > LETHAL_SQR_MAGNITUDE) {
+            killSelf();
+        }
+    }
+
+    private void killSelf() {
+        Debug.Log("dead " + PLAYER_ID);
+        Destroy(gameObject);
+    }
+
 }

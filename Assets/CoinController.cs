@@ -6,10 +6,11 @@ public class CoinController : MonoBehaviour {
 
     public float GRAVITY = 1f;
     public float DISTANCE_TO_HIT = .13f;
-    public float MAX_VERTICAL_SPEED = 10f;
-    public float MAX_HORIZONTAL_SPEED = 10f;
+    public float MAX_VERTICAL_SPEED = 12f;
+    public float MAX_HORIZONTAL_SPEED = 12f;
+    public float MAX_TERMINAL_VELOCITY = 10f;
 
-    PlayerController connectedPlayer;
+    public PlayerController connectedPlayer;
     public Vector2 velocity;
     private Rigidbody2D rg2d;
     private bool isGrounded;
@@ -24,10 +25,6 @@ public class CoinController : MonoBehaviour {
             connectedPlayer.reboundForce(value, -fromPlayer);
         }
         velocity += fromPlayer * value * value;
-    }
-
-    public void setConnectedPlayer(PlayerController player) {
-        connectedPlayer = player;
     }
 
 	// Use this for initialization
@@ -58,6 +55,7 @@ public class CoinController : MonoBehaviour {
         }
 
         velocity = new Vector2(horizontalSpeed, verticalSpeed);
+
         // add friction
         rg2d.MovePosition(rg2d.position + velocity * Time.fixedDeltaTime);
     }
