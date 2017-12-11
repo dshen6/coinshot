@@ -61,7 +61,7 @@ public class PlayerController : MonoBehaviour {
     }
 
     public void reboundForce(float value, Vector2 direction) {
-        velocity += direction.normalized * value;
+        velocity += direction.normalized * value * value;
         isExperiencingForceUp = direction.y > 0;
         if (direction.x > 0) {
             shouldIgnoreLeftBounded = true;
