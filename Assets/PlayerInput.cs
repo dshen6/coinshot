@@ -71,6 +71,9 @@ public class PlayerInput : MonoBehaviour {
                 rightTriggerDown = true;
                 BroadcastMessage("Fire1Down", triggerInput);
             }
+            if (rightTriggerDown) {
+                BroadcastMessage("Fire1", triggerInput);
+            }
         } else if (rightTriggerDown) {
             rightTriggerDown = false;
             BroadcastMessage("Fire1Up");
@@ -81,6 +84,9 @@ public class PlayerInput : MonoBehaviour {
             if (isLeftAiming()) {
                 leftTriggerDown = true;
                 BroadcastMessage("Fire2Down", triggerInput);
+            }
+            if (leftTriggerDown) {
+                BroadcastMessage("Fire2", triggerInput);
             }
         } else if (leftTriggerDown) {
             leftTriggerDown = false;
